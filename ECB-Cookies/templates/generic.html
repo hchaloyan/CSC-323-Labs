@@ -1,11 +1,14 @@
-$def with (form, msg, error)
+$def with (form, user, msg, error)
 <html>
 	<head>
 		<link href="static/calpoly.css" type='text/css' rel='stylesheet' />
 		<title>Cal Poly Authentication (not really)</title>
 	</head>
 	<body>
-		<div id='topRow'></div>
+		<div id='topRow'>
+			$if user != "":
+				Welcome, $user! [<a href="/logout">logout</a>]
+		</div>
 		<div id='fakeContainer'> </div>
 		<div id='centerContainer'>
 			<img src='static/CP_Logo_Transparent.png' style='height: 70px;'><p>

@@ -39,9 +39,9 @@ class index:
 
 		if not form.validates():
 			return render.login(form,"")
-		else:
-			user = form.d.username
-			pw = hashlib.sha1(form.d.password).hexdigest()
+
+		user = form.d.username
+		pw = hashlib.sha1(form.d.password).hexdigest()
 
 		if user == "admin" and user_dic["admin"] == pw:
 			return render.loggedin(user, True)
