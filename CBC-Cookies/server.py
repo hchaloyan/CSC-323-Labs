@@ -103,7 +103,8 @@ class home:
 
 	def GET(self):
 		user, uid, role = verify_cookie()
-
+		
+		#Don't really need to check UID, if user and role checks out.
 		if user == "":
 			return render.home("", "", "", "Please log in.")
 		elif role == "admin":

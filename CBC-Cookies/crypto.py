@@ -29,6 +29,7 @@ def ansix923_strip(plain,blocksize):
 	return newplain	
 
 def create_crypto_cookie(user, userid, role, key):
+	
 	#Catch those cheaters trying to set usernames to "user&role=admin"
 	cookie = "user=" + urllib.quote_plus(user) + "&uid=" + str(userid) + "&role=" + role
 	#OK, I learned my lesson last time. CBC is way better. Randomized IV too.
@@ -44,4 +45,5 @@ def verify_crypto_cookie(enc_cookie, key):
 	cookie = ansix923_strip(cookie_pad, AES.block_size)
 	query = urlparse.parse_qs(cookie)
 	
+	#This will cause an exception (to be caught by caller) if one of the keys is missing.
 	return query["user"][0], query["uid"][0], query["role"][0]
