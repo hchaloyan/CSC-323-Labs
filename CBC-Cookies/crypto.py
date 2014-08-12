@@ -9,10 +9,10 @@ def ansix923_pad(plain,blocksize):
 	return plain
 
 def ansix923_strip(plain,blocksize):
-	
+
 	numblocks = len(plain)/(blocksize) + (1 if len(plain)%blocksize else 0)
-	
-	newplain = plain[0:(numblocks-1)*blocksize]
+
+	newplain = plain[:(numblocks-1)*blocksize]
 	padblock = plain[(numblocks-1)*blocksize:]
 	padbytes = int(padblock[-1:].encode("hex"),16)
 	#Validate padding - we should never see a pad end in zero
@@ -20,13 +20,13 @@ def ansix923_strip(plain,blocksize):
 		raise Exception("PaddingError")
 		return ""
 	#make sure all the pad bytes make sense
-	for i in range(padbytes-1):
-		if padblock[-padbytes+i:-padbytes+i+1] != '\x00':
-			raise Exception("PaddingError")
-			return ""
+	if padblock[blocksize-padbytes:blocksize-1] != '\x00'*(padbytes-1):
+		raise Exception("PaddingError")
+		return ""
+
 	newplain += padblock[:-padbytes]
 
-	return newplain	
+	return newplain
 
 def create_crypto_cookie(user, userid, role, key):
 	
