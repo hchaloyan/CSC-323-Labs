@@ -6,8 +6,9 @@ STR_COOKIE_NAME = "auth_token"
 
 master_key = os.urandom(16)
 
-#Database of users. Key is username, value is [SHA1(password), role]
-user_db = {"admin":["119ba0f0a97158cd4c92f9ee6cf2f29e75f5e05a","admin"]}
+#Database of users. Key is username, value is [SHA1(password), userid, role]
+user_db = {"admin":["119ba0f0a97158cd4c92f9ee6cf2f29e75f5e05a", 0, "admin"]}
+user_ids = int(1)
 
 render = web.template.render('templates/')
 urls = ('/', 'index', 
@@ -31,7 +32,7 @@ class index:
 	nullform = form.Form()
 
 	def GET(self):
-		user, role = verify_cookie()
+		user, uid, role = verify_cookie()
 		if user != "":
 			return render.login(self.nullform, user, "Already logged in.")
 
@@ -47,7 +48,7 @@ class index:
 		pw = hashlib.sha1(form.d.password).hexdigest()
 
 		if user in user_db and user_db[user][0] == pw:
-			create_cookie(user, user_db[user][1])
+			create_cookie(user, user_db[user][1], user_db[user][2])
 			raise web.seeother('/home')
 		
 		return render.login(form, "", "Username/Password Incorrect")
@@ -67,7 +68,7 @@ class register:
 	nullform = form.Form()
 
 	def GET(self):
-		user, role = verify_cookie()
+		user, uid, role = verify_cookie()
 		if user != "":
 			return render.generic(self.nullform, user, "", "Already logged in.")
 
@@ -75,19 +76,25 @@ class register:
 		
 
 	def POST(self):
+		global user_ids
 		form = self.myform()
 		msg = ""
 		err = ""
 		
 		if not form.validates():
 			err = "Invalid fields."
+		#Prevent those h4x0rs from trying to create user names
+		#that might elevate their privellages.
+		elif "=" in form.d.user or "&" in form.d.user:
+			err = "Invalid characters in username."
 		else:
 			if form.d.user in user_db:
 				err = "User already registered."
 			else:
 				#Set the password and role: only non-admin "users" can be created
 				#through the web interface
-				user_db[form.d.user] = [hashlib.sha1(form.d.password).hexdigest(),"user"]
+				user_db[form.d.user] = [hashlib.sha1(form.d.password).hexdigest(), user_ids, "user"]
+				user_ids += 1
 				msg = "User registered."
 		return render.generic(self.nullform(), "", msg, err)
 
@@ -99,8 +106,7 @@ class logout:
 class home:
 
 	def GET(self):
-		user, role = verify_cookie()
-		print "user, role", user, role
+		user, uid, role = verify_cookie()
 
 		if user == "":
 			return render.home("", "", "", "Please log in.")
@@ -114,18 +120,18 @@ class home:
 def destroy_cookie():
 	web.setcookie(STR_COOKIE_NAME, "", expires=-1)
 	
-def create_cookie(user, role):
-	cookie = crypto.create_crypto_cookie(user, role, master_key)
+def create_cookie(user, uid, role):
+	cookie = crypto.create_crypto_cookie(user, uid, role, master_key)
 	web.setcookie(STR_COOKIE_NAME, cookie.encode("hex"))
 
 def verify_cookie():
 	cookie = web.cookies().get(STR_COOKIE_NAME)
 	if cookie == None:
-		return "",""
+		return "","",""
 	try:
 		return crypto.verify_crypto_cookie(cookie.decode("hex"), master_key)
 	except:
-		return "",""
+		return "","",""
 
 if __name__ == "__main__":
 	app = web.application(urls, globals())

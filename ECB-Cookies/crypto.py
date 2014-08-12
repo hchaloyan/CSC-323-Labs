@@ -1,7 +1,7 @@
 from Crypto.Cipher import AES
 import urllib, urlparse
 
-#Read about this padding scheme here: http://en.wikipedia.org/wiki/Padding_(cryptography)#ANSI_X.923
+#I read about this padding scheme here: http://en.wikipedia.org/wiki/Padding_(cryptography)#ANSI_X.923
 def ansix923_pad(plain,blocksize):
 	
 	padbytes = blocksize - len(plain)%blocksize
@@ -12,10 +12,12 @@ def ansix923_strip(plain,blocksize):
 	
 	numblocks = len(plain)/(blocksize) + (1 if len(plain)%blocksize else 0)
 	
+	#Isolate the blocks that are all plaintext vs. the one that has padding in it
 	newplain = plain[0:(numblocks-1)*blocksize]
 	padblock = plain[(numblocks-1)*blocksize:]
 	padbytes = int(padblock[-1:].encode("hex"),16)
-	#Validate padding - we should never see a pad end in zero
+	#Validate padding - we should never see a pad end in zero or have value larger
+	#than the blocksize
 	if padbytes == 0 or padbytes > blocksize:
 		raise Exception("PaddingError")
 		return ""
@@ -24,13 +26,14 @@ def ansix923_strip(plain,blocksize):
 		if padblock[-padbytes+i:-padbytes+i+1] != '\x00':
 			raise Exception("PaddingError")
 			return ""
+	#Append the non-padding bytes to the plaintext text and return it
 	newplain += padblock[:-padbytes]
 
 	return newplain	
 
-def create_crypto_cookie(user, role, key):
-	#Catch those cheaters trying to set usernames to "user&role=admin"
-	cookie = "user=" + urllib.quote_plus(user) +"&uid=323&role="+role
+def create_crypto_cookie(user, userid, role, key):
+	#Create the cookie contents
+	cookie = "user=" + user + "&uid=" + str(userid) + "&role=" + role
 	#Use strong crypto so cookie can't be read or changed.
 	aes_obj = AES.new(bytes(key))
 	return aes_obj.encrypt(ansix923_pad(cookie, AES.block_size))
@@ -42,4 +45,4 @@ def verify_crypto_cookie(enc_cookie, key):
 	cookie = ansix923_strip(cookie_pad, AES.block_size)
 	query = urlparse.parse_qs(cookie)
 	
-	return query["user"][0], query["role"][0]
+	return query["user"][0], query["uid"][0], query["role"][0]
