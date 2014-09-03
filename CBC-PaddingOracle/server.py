@@ -22,9 +22,6 @@ class index:
 class eavesdrop:
 	
 	def GET(self):
-		#print "Master Key:", master_key.encode("hex")
-		#print crypto.cbc_encrypt("This is a test of the emergency znjp system!", master_key).encode("hex")
-		#print crypto.cbc_decrypt(crypto.cbc_encrypt("This is a test of the emergency znjp system!", master_key), master_key)
 		msg = crypto.cbc_encrypt(secret, master_key).encode("hex")
 		return render.generic(form.Form(),"You eavesdropped the following message:",msg,False)
 
