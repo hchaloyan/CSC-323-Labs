@@ -2,7 +2,7 @@ import web
 import crypto
 
 hmac = crypto.HMAC()
-print hmac.mac_query("test")
+#print hmac.mac_query("test")
 
 render = web.template.render('templates/')
 urls = ('/', 'index')

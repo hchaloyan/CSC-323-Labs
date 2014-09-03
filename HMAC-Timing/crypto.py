@@ -1,4 +1,4 @@
-import urllib, urlparse, os, time
+import os, time
 from Crypto import Hash
 from Crypto.Hash import SHA
 from Crypto.Hash import HMAC as hmac
@@ -27,7 +27,11 @@ class HMAC:
 		return True
 
 	def verify_query(self, msg, tag):
-		return self.hmac_sha1_verify(self.key, msg, tag.decode("hex"))
+		try:
+			ret = self.hmac_sha1_verify(self.key, msg, tag.decode("hex"))
+		except:
+			ret = False
+		return ret
 	
 	def mac_query(self, msg):
 		return self.hmac_sha1_sign(self.key, msg).encode("hex")
