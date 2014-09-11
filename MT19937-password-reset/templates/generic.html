@@ -12,7 +12,7 @@ $def with (form, msg, error)
 			<center>
 			<form name ="main" method="post">
 				$if msg != "":
-					<p><font color="black"> $msg </font></p>
+					<p><font color="black"> <!--open_token-->$msg<!--close_token--> </font></p>
 				$if error != "":
 					<p><font color="red"> $error </font></p>
 				$:form.render()
