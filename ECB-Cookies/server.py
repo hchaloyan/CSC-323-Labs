@@ -85,7 +85,7 @@ class register:
 			err = "Invalid fields."
 		#Prevent those h4x0rs from trying to create user names
 		#that might elevate their privellages.
-		elif "=" in form.d.user or "&" in form.d.user:
+		elif "=" in form.d.user or "&" in form.d.user or ";" in form.d.user:
 			err = "Invalid characters in username."
 		else:
 			if form.d.user in user_db:
