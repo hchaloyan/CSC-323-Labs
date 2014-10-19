@@ -1,9 +1,10 @@
 import web
 from web import form
-import crypto, os
+import crypto, os, random
 
 master_key = os.urandom(16)
-secret = "This is a test of the emergency znjp system!"
+secrets = open("static/goodlife.txt", "r").readlines()
+secret = secrets[random.randint(0,len(secrets))].rstrip("\n")
 
 render = web.template.render('templates/')
 urls = ('/', 'index',
@@ -38,7 +39,6 @@ class submit:
 
 
 	def POST(self):
-
 		if not self.myform.validates():
 			return render.generic(self.myform(), "", "Invalid form data.", False)
 		if self.myform.d.guess == secret:
@@ -59,6 +59,5 @@ def verify_decrypt(enc):
 		return False
 
 if __name__ == "__main__":
-
 	app = web.application(urls, globals())
 	app.run()
