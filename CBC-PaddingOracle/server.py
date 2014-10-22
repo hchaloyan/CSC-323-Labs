@@ -53,7 +53,6 @@ def verify_decrypt(enc):
 		return False
 	try:
 		plain = crypto.cbc_decrypt(enc.decode("hex"), master_key)
-		print plain
 		return True
 	except:
 		return False
