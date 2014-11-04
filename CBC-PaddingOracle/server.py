@@ -4,7 +4,7 @@ import crypto, os, random
 
 master_key = os.urandom(16)
 secrets = open("static/goodlife.txt", "r").readlines()
-secret = secrets[random.randint(0,len(secrets))].rstrip("\n")
+secret = secrets[random.randint(0,len(secrets)-1)].rstrip("\n")
 
 render = web.template.render('templates/')
 urls = ('/', 'index',
