@@ -17,7 +17,7 @@ user_dic = {"admin":"119ba0f0a97158cd4c92f9ee6cf2f29e75f5e05a"}
 token_dic = {}
 
 #Seed my super-secure PRNG using the OS
-seed = int(os.urandom(4).encode("hex"), 16)
+seed = os.urandom(4) #int(os.urandom(4).encode("hex"), 16)
 MT = MT19937.MT19937(seed)
 
 class index:
@@ -44,7 +44,7 @@ class index:
 			return render.login(form,"")
 
 		user = form.d.username
-		pw = hashlib.sha1(form.d.password).hexdigest()
+		pw = hashlib.sha1(form.d.password.encode("UTF-8")).hexdigest()
 
 		if user == "admin" and user_dic["admin"] == pw:
 			return render.loggedin(user, True)
@@ -81,14 +81,14 @@ class forgot:
 		user = form.d.user
          
 		if user in user_dic:
-			token = generate_token()
+			token = str(generate_token())
 			time = datetime.datetime.now() + datetime.timedelta(minutes=TIMEOUT)
 			token_dic[token] = reset_token(user, time)
 
 			if user == "admin":
 				msg = "Admin emailed reset token."
 			else:
-				#TODO: Email server not work, so I'll just post them to the screen for now.
+				#TODO: Email server not working, so I'll just post them to the screen for now.
 				msg = web.ctx.env.get('HTTP_HOST') + "/reset?token=" + token
 				return render.generic(form, msg, err)
 		else:
@@ -124,7 +124,7 @@ class register:
 			if form.d.user in user_dic:
 				err = "User already registered."
 			else:
-				user_dic[form.d.user] = hashlib.sha1(form.d.password).hexdigest();
+				user_dic[form.d.user] = hashlib.sha1(form.d.password.encode("UTF-8")).hexdigest();
 				msg = "User registered."
 		return render.generic(self.nullform(), msg, err)
 
@@ -183,7 +183,7 @@ class reset:
 		if form.d.token in token_dic and token_dic[form.d.token].timeout > datetime.datetime.now():
 			msg = "Password reset for user: " + token_dic[form.d.token].user
 			user = token_dic[form.d.token].user
-			user_dic[user] = hashlib.sha1(form.d.password).hexdigest();
+			user_dic[user] = hashlib.sha1(form.d.password.encode("UTF-8")).hexdigest();
 			del token_dic[form.d.token]
 		else:
 			err = "Invalid token."
@@ -202,7 +202,7 @@ def generate_token():
 	token = str(MT.extract_number())
 	for i in range(7):
 		token += ":" + str(MT.extract_number())
-	return base64.b64encode(token)
+	return base64.b64encode(bytes(token, encoding='utf8'))
 
 
 if __name__ == "__main__":

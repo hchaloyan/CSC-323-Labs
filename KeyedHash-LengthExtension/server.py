@@ -23,15 +23,20 @@ class index:
 		if user_data.who == "" or user_data.what == "" or user_data.mac == "":
 			return render.generic(posts, "Invalid post.")
 		try:
+			#Make sure the mac is hex-encoded
 			int(user_data.mac, 16)
 		except:
 			return render.generic(posts, "Signature must be in hex.")
 		
 		if mac.verify_post(user_data.what, user_data.mac):
 			try:
+				#Sometimes we get weird chracters, percent quote them
+				#if they're not unicode.
 				unicode(user_data.what)
 			except:
 				user_data.what = urllib.quote(user_data.what)
+
+			#Update our posts "database"
 			posts.append([user_data.who, user_data.what, user_data.mac])
 			return render.generic(posts, "")
 		else:
@@ -39,6 +44,7 @@ class index:
 			
 class post:
 	def GET(self):
+		#Create a fake post to our forum
 		global post_counter
 		who, what, mac = all_posts[post_counter]
 		post_counter = (post_counter + 1)%len(all_posts)
