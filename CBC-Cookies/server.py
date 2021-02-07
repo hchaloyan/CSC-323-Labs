@@ -45,7 +45,7 @@ class index:
 			return render.login(form, "", "Invalid form data.")
 
 		user = form.d.user
-		pw = hashlib.sha1(form.d.password).hexdigest()
+		pw = hashlib.sha1(form.d.password.encode("UTF-8")).hexdigest()
 
 		if user in user_db and user_db[user][0] == pw:
 			create_cookie(user, user_db[user][1], user_db[user][2])
@@ -89,7 +89,7 @@ class register:
 			else:
 				#Set the password and role: only non-admin "users" can be created
 				#through the web interface
-				user_db[form.d.user] = [hashlib.sha1(form.d.password).hexdigest(), user_ids, "user"]
+				user_db[form.d.user] = [hashlib.sha1(form.d.password.encode("UTF-8")).hexdigest(), user_ids, "user"]
 				user_ids += 1
 				msg = "User registered."
 		return render.generic(self.nullform(), "", msg, err)
@@ -119,16 +119,16 @@ def destroy_cookie():
 	
 def create_cookie(user, uid, role):
 	cookie = crypto.create_crypto_cookie(user, uid, role, master_key)
-	web.setcookie(STR_COOKIE_NAME, cookie.encode("hex"))
+	web.setcookie(STR_COOKIE_NAME, cookie.hex())
 
 def verify_cookie():
-	cookie = web.cookies().get(STR_COOKIE_NAME)
-	if cookie == None:
-		return "","",""
-	try:
-		return crypto.verify_crypto_cookie(cookie.decode("hex"), master_key)
-	except:
-		return "","",""
+    cookie = web.cookies().get(STR_COOKIE_NAME)
+    if cookie == None:
+    	return "","",""
+    try:
+    	return crypto.verify_crypto_cookie(bytes.fromhex(cookie), master_key)
+    except:
+    	return "","",""
 
 if __name__ == "__main__":
 	app = web.application(urls, globals())
