@@ -27,7 +27,6 @@ class HMAC:
         return True
 
     def verify_query(self, msg, tag):
-        ret = self.hmac_sha1_verify(self.key, bytes(msg,'utf-8'), bytes.fromhex(tag))
         try:
             ret = self.hmac_sha1_verify(self.key, bytes(msg,'utf-8'), bytes.fromhex(tag))
         except:
