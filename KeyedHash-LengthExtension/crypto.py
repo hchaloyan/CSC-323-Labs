@@ -22,7 +22,7 @@ class KeyedMAC:
         return result == 0
 
     def verify_post(self, msg, tag):
-        ret = self.mac_sha1_verify(self.key, bytes(msg,"latine"), bytes.fromhex(tag))
+        ret = self.mac_sha1_verify(self.key, bytes(msg,"latin"), bytes.fromhex(tag))
         try:
             ret = self.mac_sha1_verify(self.key, bytes(msg,"latin"), bytes.fromhex(tag))
         except:
