@@ -1,7 +1,7 @@
 import os, time
-from Cryptodome import Hash
-from Cryptodome.Hash import SHA
-from Cryptodome.Hash import HMAC as hmac
+from Crypto import Hash
+from Crypto.Hash import SHA
+from Crypto.Hash import HMAC as hmac
 
 class HMAC:
     def __init__(self):
