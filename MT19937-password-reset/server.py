@@ -81,7 +81,7 @@ class forgot:
 		user = form.d.user
          
 		if user in user_dic:
-			token = str(generate_token())
+			token = generate_token()
 			time = datetime.datetime.now() + datetime.timedelta(minutes=TIMEOUT)
 			token_dic[token] = reset_token(user, time)
 
@@ -89,7 +89,7 @@ class forgot:
 				msg = "Admin emailed reset token."
 			else:
 				#TODO: Email server not working, so I'll just post them to the screen for now.
-				msg = web.ctx.env.get('HTTP_HOST') + "/reset?token=" + token
+				msg = web.ctx.env.get('HTTP_HOST') + "/reset?token=" + token.decode('utf-8')
 				return render.generic(form, msg, err)
 		else:
 			err = "User not found."
@@ -144,7 +144,7 @@ class reset:
 
 	def GET(self):
 		user_data = web.input(token="")
-		token = user_data.token
+		token = user_data.token.encode('utf-8')
 
 		myform = form.Form(
 			form.Password("password",
@@ -179,12 +179,14 @@ class reset:
 			err = "Invalid form data."
 			return render.generic(self.nullform, msg, err)
 
+		token = form.d.token.encode('utf-8')
+
 		#Make sure it's a valid token, and remove it once used
-		if form.d.token in token_dic and token_dic[form.d.token].timeout > datetime.datetime.now():
-			msg = "Password reset for user: " + token_dic[form.d.token].user
-			user = token_dic[form.d.token].user
+		if token in token_dic and token_dic[token].timeout > datetime.datetime.now():
+			msg = "Password reset for user: " + token_dic[token].user
+			user = token_dic[token].user
 			user_dic[user] = hashlib.sha1(form.d.password.encode("UTF-8")).hexdigest();
-			del token_dic[form.d.token]
+			del token_dic[token]
 		else:
 			err = "Invalid token."
 
@@ -202,7 +204,7 @@ def generate_token():
 	token = str(MT.extract_number())
 	for i in range(7):
 		token += ":" + str(MT.extract_number())
-	return base64.b64encode(bytes(token, encoding='utf8'))
+	return base64.b64encode(token.encode('utf-8'))
 
 
 if __name__ == "__main__":
