@@ -3,12 +3,13 @@ import os, hashlib
 class KeyedMAC:
     def __init__(self):
         self.key = os.urandom(hashlib.sha1().digest_size)
-        #self.key = "YELLOW SUBMARINE"
+        #self.key = b"YELLOW SUBMARINE" #For testing
 
     def mac_sha1_sign(self, key, msg):
         return hashlib.sha1(key + msg).digest()
 
     def mac_sha1_verify(self, key, msg, tag):
+
         tag_new = hashlib.sha1(key + msg).digest()
 
         #An obvious check
@@ -22,12 +23,14 @@ class KeyedMAC:
         return result == 0
 
     def verify_post(self, msg, tag):
-        ret = self.mac_sha1_verify(self.key, bytes(msg,"latin"), bytes.fromhex(tag))
+
+        ret = False
         try:
-            ret = self.mac_sha1_verify(self.key, bytes(msg,"latin"), bytes.fromhex(tag))
-        except:
+            ret = self.mac_sha1_verify(self.key, msg, bytes.fromhex(tag))
+        except Exception as e:
+            print(e)
             ret = False
         return ret
-    
+
     def mac_post(self, msg):
-        return self.mac_sha1_sign(self.key, bytes(msg, "latin")).hex()
+        return self.mac_sha1_sign(self.key, msg.encode("utf-8")).hex()
