@@ -5,11 +5,14 @@ class MT19937:
 		#TODO: Initialize MT state here
 		return
 
+	#Extract a tempered value based on MT[index]
+	#calling twist() every n numbers
 	def extract_number(self):
 		#TODO: Temper and Extract Here
 		return 42
 
-	def generate_number(self):
+	#Generate the next n values from the series x_i 
+	def twist(self):
 		#TODO: Mix state here
 		return
 
