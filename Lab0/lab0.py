@@ -293,9 +293,9 @@ def breakVigenere(ciphertext: str) -> str:
         candidates.append((scoreString(plaintext), keyCandidate, plaintext))
 
         
-    # Sort and print candidates, only top 5 likely
+    # Sort and only print most likely
     candidates.sort(reverse=True)
-    for score, key, plaintext in candidates[:5]:
+    for score, key, plaintext in candidates[:1]:
         print((f"Key: {key}, plaintext: {plaintext}"))
 
 
