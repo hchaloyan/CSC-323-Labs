@@ -39,6 +39,26 @@ def byteToBase64(byte):
     
     return base64.b64encode(byte)
 
+def intToByte(num):
+
+    return num.to_bytes(4, byteorder='big')
+
+def byteToInt(byte):
+
+    return int.from_bytes(byte, byteorder='big')
+
+def base64ToInt(base):
+
+    return int(byteToHex(base64ToByte(base)), 16)
+
+def byteToString(byte):
+
+    return byte.decode()
+
+def stringToBase64(string):
+
+    return byteToBase64(string.encode())
+
 # ------------------------------------------------------------------------
 
 

@@ -3,6 +3,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import utility
 import numpy as numPy
+import time, random
 
 # CONSTANTS
 
@@ -60,7 +61,8 @@ class mersenneTwister:
         self.state[0] = seed
 
         for i in range(1, self.n):
-            seed = f * (seed ^ (seed >> (self.w-2))) + i
+            # Added 0xFFFFFFFF to keep bottom 32 bits, to match pseudocode
+            seed = (f * (seed ^ (seed >> (self.w-2))) + i) & 0xFFFFFFFF
             self.state[i] = seed
 
 
@@ -69,7 +71,7 @@ class mersenneTwister:
     #          y = y ^ ((y << t) & c);
     # uint32_t z = y ^ (y >> l);
 
-    def temper(self, x) -> numPy.uint32:
+    def temper(self, x):
         y = x ^ (x >> self.u)
         y = y ^ ((y << self.s) & self.b)
         y = y ^ ((y << self.t) & self.c)
@@ -118,24 +120,78 @@ class mersenneTwister:
         z = self.temper(x)
         return z
 
+# Oracle: waits 5-60s, seeds MT with current UNIX timestamp, waits another 5-60s,
+#         then returns the first 32-bit output as a base64-encoded value
+def oracle():
+
+    # Wait a random number of seconds from 5-60
+    time.sleep(random.randint(5, 60))
+
+    # Seed with current UNIX timestamp
+    seed = int(time.time())
+    mt = mersenneTwister(seed)
+
+    # Wait another random number of seconds between 5 and 60
+    time.sleep(random.randint(5, 60))
+
+    # Return the first 32-bit output base64-encoded
+    output = mt.twister()
+    return utility.byteToBase64(utility.intToByte(output))
+
+
+# Brute-force the MT seed by trying every timestamp in between timeBefore and timeAfter
+def crackSeed(oracleOutput, timeBefore, timeAfter):
+
+    # Decode the base64 oracleOutput to integer
+    target = utility.base64ToInt(oracleOutput)
+
+    # Try each candidate timestamp; seed must fall between timeBefore and timeAfter
+    for i in range(timeBefore - 5, timeAfter + 5):
+        mt = mersenneTwister(i)
+
+        if mt.twister() == target:
+            return i
+
+
+    # Return None if seed isn't found
+    return None
+
+
 def task1():
 
     # 5489 is the default seed
     seed = 5489
+
+    print("\nPrinting mersenne twister tests:")
 
     mt = mersenneTwister(seed)
     print(mt.twister())
 
     mt2 = mersenneTwister(seed)
 
-    print(mt.twister())
+    print(mt2.twister())
 
-
-def main():
+    # --------------------------------------------------------
     
-    task1()
-    #task2()
+    # Breaking MT19937
+
+    print("\nCalling oracle, wait 10 - 120 seconds!")
+    
+    # Store timestamps of before and after oracle call
+    timeBefore = int(time.time())
+    oracleOutput = oracle()
+    timeAfter = int(time.time())
+
+    print("Searching seeds in from", timeBefore, "to",  timeAfter)
+
+    seed = crackSeed(oracleOutput, timeBefore, timeAfter)
+
+    if seed is not None:
+        print("Seed:", seed)
+    else:
+        print("Seed not found.")
+
 
 
 if __name__=="__main__":
-    main()
+    task1()
