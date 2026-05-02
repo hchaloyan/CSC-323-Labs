@@ -16,6 +16,8 @@ import time, random
 # s, t: TGFSR(R) tempering bit shifts
 # u, d, l: additional Mersenne Twister tempering bit shifts/masks
 
+# Used https://en.wikipedia.org/wiki/Mersenne_Twister for help
+
 class mersenneTwister:
     
     def __init__(self, seed):
@@ -139,13 +141,14 @@ def oracle():
     return utility.byteToBase64(utility.intToByte(output))
 
 
-# Brute-force the MT seed by trying every timestamp in between timeBefore and timeAfter
+# Brute-force the MT seed
 def crackSeed(oracleOutput, timeBefore, timeAfter):
 
-    # Decode the base64 oracleOutput to integer
+    # Convert base64 to int
     target = utility.base64ToInt(oracleOutput)
 
-    # Try each candidate timestamp; seed must fall between timeBefore and timeAfter
+    # Try every possible timestamp
+    # Seed is between timeBefore and timeAfter
     for i in range(timeBefore - 5, timeAfter + 5):
         mt = mersenneTwister(i)
 
