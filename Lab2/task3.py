@@ -110,12 +110,32 @@ def task3a():
 # Part B: CBC Cookies
 
 def task3b():
+    
+    # LOG IN WITH
+    # A
+    
+    # cookie = "user=" + urllib.parse.quote_plus(user) + "&uid=" + str(userid) + "&role=" + role
+    # 'user=a&uid=1' '0x00' '0x00' '0x00' '0x04' | &role=user '0x00' '0x00' '0x00' '0x00' '0x00' '0x06'
+    # 'user=a&uid=1' '0x00' '0x00' '0x00' '0x04' | &role=admin '0x00' '0x00' '0x00' '0x00' '0x05'
+
+    # https://medium.com/@olyhossen10/breaking-aes-cbc-the-bit-flipping-attack-to-gain-admin-access-a8d64040e962
+
+    token = input("\nInput auth_token:").strip()
+    cookie = utility.hexToByte(token)
+    
+    currentBlock = b'&role=user\x00\x00\x00\x00\x00\x06'
+    goalBlock    = b'&role=admin\x00\x00\x00\x00\x00\x05'
+    
+    ivBlock = cookie[0:16]
+    block1 = cookie[16:32]
+    block2  = cookie[32:48]
+    
+    modifiedBlock1 = utility.XOR(utility.XOR(block1, currentBlock), goalBlock) 
 
 
-
-    print("\n\nI wasn't able to figure TASK3B out, but I wanted to turn in the assignment somewhat close to the due date.")
-
-    print("I will try to solve this by Tuesday's lab demo.")
+    adminCookie = utility.byteToHex(ivBlock + modifiedBlock1 + block2)
+    
+    print("Account Cookie:", adminCookie)
 
 
 if __name__ == "__main__":
