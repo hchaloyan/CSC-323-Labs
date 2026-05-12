@@ -129,8 +129,10 @@ def task3b():
     ivBlock = cookie[0:16]
     block1 = cookie[16:32]
     block2  = cookie[32:48]
+
+    offset = utility.XOR(currentBlock, goalBlock)
     
-    modifiedBlock1 = utility.XOR(utility.XOR(block1, currentBlock), goalBlock) 
+    modifiedBlock1 = utility.XOR(block1, offset) 
 
 
     adminCookie = utility.byteToHex(ivBlock + modifiedBlock1 + block2)
