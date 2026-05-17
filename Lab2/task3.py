@@ -110,34 +110,39 @@ def task3a():
 # Part B: CBC Cookies
 
 def task3b():
-    
-    # LOG IN WITH
-    # A
-    
-    # cookie = "user=" + urllib.parse.quote_plus(user) + "&uid=" + str(userid) + "&role=" + role
-    # 'user=a&uid=1' '0x00' '0x00' '0x00' '0x04' | &role=user '0x00' '0x00' '0x00' '0x00' '0x00' '0x06'
-    # 'user=a&uid=1' '0x00' '0x00' '0x00' '0x04' | &role=admin '0x00' '0x00' '0x00' '0x00' '0x05'
 
-    # https://medium.com/@olyhossen10/breaking-aes-cbc-the-bit-flipping-attack-to-gain-admin-access-a8d64040e962
+    # Log in with username aaaaaaaaaaaaaaaaaaaaa
 
     token = input("\nInput auth_token:").strip()
     cookie = utility.hexToByte(token)
     
-    currentBlock = b'&role=user\x00\x00\x00\x00\x00\x06'
-    goalBlock    = b'&role=admin\x00\x00\x00\x00\x00\x05'
+    IV  = cookie[0:16]
+    block0 = cookie[16:32]
+    block1 = cookie[32:48]
+    block2 = cookie[48:64]
     
-    ivBlock = cookie[0:16]
-    block1 = cookie[16:32]
-    block2  = cookie[32:48]
-
-    offset = utility.XOR(currentBlock, goalBlock)
+    # Original plaintexts:
+    currentPlaintext0 = b'user=aaaaaaaaaaa'
+    currentPlaintext2 = b'&role=user' + b'\x00\x00\x00\x00\x00' + b'\x06'
     
-    modifiedBlock1 = utility.XOR(block1, offset) 
-
-
-    adminCookie = utility.byteToHex(ivBlock + modifiedBlock1 + block2)
+    # Target plaintexts:
+    targetPlaintext0  = b'user=a&uid=1&aaa'    # parses as user=a, uid=1, aaa=(dropped)
+    targetPlaintext2  = b'&role=admin' + b'\x00\x00\x00\x00' + b'\x05'
     
-    print("Account Cookie:", adminCookie)
+    # Compute offset
+    offsetZero = utility.XOR(currentPlaintext0, targetPlaintext0)
+    offsetTwo = utility.XOR(currentPlaintext2, targetPlaintext2)
+    
+    # Apply offsets!!! 
+
+    # IV controls M[0]
+    newIV = utility.XOR(IV, offsetZero)
+    
+    # C[1] controls M[2]
+    newBlock1 = utility.XOR(block1, offsetTwo)
+    
+    adminCookie = utility.byteToHex(newIV + block0 + newBlock1 + block2)
+    print("Account Cookie: ", adminCookie)
 
 
 if __name__ == "__main__":
